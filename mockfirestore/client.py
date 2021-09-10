@@ -1,4 +1,7 @@
 from typing import Iterable
+
+from google.cloud.firestore_v1.field_path import render_field_path
+
 from mockfirestore.collection import CollectionReference
 from mockfirestore.document import DocumentReference, DocumentSnapshot
 from mockfirestore.transaction import Transaction
@@ -56,4 +59,6 @@ class MockFirestore:
     def transaction(self, **kwargs) -> Transaction:
         return Transaction(self, **kwargs)
 
-
+    @staticmethod
+    def field_path(*field_names: str) -> str:
+        return render_field_path(field_names)
