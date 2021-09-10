@@ -139,12 +139,12 @@ def _apply_transformations(document: Dict[str, Any], data: Dict[str, Any]):
             except (TypeError, KeyError):
                 item = default
 
-            set_by_path(data, path, item + value)
-    
+            set_by_path(data, path, item + value, create_nested=True)
+
     _update_data(increments, 0)
     _update_data(arr_unions, [])
 
-    document.update(data)
+    _apply_updates(document, data)
     _apply_deletes(document, deletes)
     _apply_arr_deletes(document, arr_deletes)
 
@@ -165,3 +165,9 @@ def _apply_arr_deletes(document: Dict[str, Any], data: Dict[str, Any]):
             except ValueError:
                 pass
         set_by_path(document, path, value)
+
+
+def _apply_updates(document: Dict[str, Any], data: Dict[str, Any]):
+    for key in list(data.keys()):
+        path = key.split(".")
+        set_by_path(document, path, data[key], create_nested=True)
