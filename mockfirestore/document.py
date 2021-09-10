@@ -1,10 +1,13 @@
+import operator
+import pdb
 from copy import deepcopy
 from functools import reduce
-import operator
 from typing import List, Dict, Any
+
 from mockfirestore import NotFound
 from mockfirestore._helpers import (
-    Timestamp, Document, Store, get_by_path, set_by_path, delete_by_path, get_document_iterator
+    Timestamp, Document, Store, get_by_path, set_by_path, delete_by_path, get_document_iterator,
+    parse_field_path
 )
 
 
@@ -151,13 +154,13 @@ def _apply_transformations(document: Dict[str, Any], data: Dict[str, Any]):
 
 def _apply_deletes(document: Dict[str, Any], data: List[str]):
     for key in data:
-        path = key.split(".")
+        path = parse_field_path(str(key))
         delete_by_path(document, path)
 
 
 def _apply_arr_deletes(document: Dict[str, Any], data: Dict[str, Any]):
     for key, values_to_delete in data.items():
-        path = key.split(".")
+        path = parse_field_path(str(key))
         value = get_by_path(document, path)
         for value_to_delete in values_to_delete:
             try:
@@ -169,5 +172,5 @@ def _apply_arr_deletes(document: Dict[str, Any], data: Dict[str, Any]):
 
 def _apply_updates(document: Dict[str, Any], data: Dict[str, Any]):
     for key in list(data.keys()):
-        path = key.split(".")
+        path = parse_field_path(str(key))
         set_by_path(document, path, data[key], create_nested=True)
