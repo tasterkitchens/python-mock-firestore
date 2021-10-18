@@ -9,12 +9,12 @@ from mockfirestore._helpers import T, split_field_path, get_by_path, set_by_path
 
 class Query:
     def __init__(self, parent: 'CollectionReference', projection=None,
-                 field_filters=(), selected=None, orders=(), limit=None, offset=None,
+                 field_filters=(), orders=(), limit=None, offset=None,
                  start_at=None, end_at=None, all_descendants=False) -> None:
         self.parent = parent
         self.projection = projection
         self._field_filters = []
-        self._selected_fields = selected
+        self._selected_fields = None
 
         self.orders = list(orders)
         self._limit = limit

@@ -85,5 +85,6 @@ class CollectionReference:
             yield doc_snapshot
 
     def select(self, field_paths: Iterable[str]):
-        query = Query(self, selected=field_paths)
+        query = Query(self)
+        query._selected_fields = field_paths
         return query
