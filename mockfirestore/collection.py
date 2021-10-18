@@ -86,5 +86,5 @@ class CollectionReference:
 
     def select(self, field_paths: Iterable[str]):
         query = Query(self)
-        query._selected_fields = field_paths
+        query.select(field_paths)
         return query
