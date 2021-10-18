@@ -334,3 +334,90 @@ class TestDocumentReference(TestCase):
 
         doc = fs.collection("foo").document("first").get().to_dict()
         self.assertEqual(doc, {"nested": {"subnested": {"value": [1, 3]}}, "other": None})
+
+
+    def test_document_select_fields(self):
+        fs = MockFirestore()
+        fs._data = {
+            "foo": {
+                "first": {
+                    "field_1": "first_one",
+                    "field_2": "first_two",
+                    "field_3": "first_three",
+                    "field_4": "first_four",
+                },
+                "second": {
+                    "field_1": "second_one",
+                    "field_2": "second_two",
+                    "field_3": "second_three",
+                    "field_4": "second_four",
+                },
+            }
+        }
+        docs = fs.collection("foo").select(["field_1", "field_2"])
+        docs = [doc.to_dict() for doc in docs.stream()]
+        self.assertEqual(docs[0], {"field_1": "first_one", "field_2": "first_two"})
+        self.assertEqual(docs[1], {"field_1": "second_one", "field_2": "second_two"})
+
+    def test_document_select_fields_nested(self):
+        fs = MockFirestore()
+        fs._data = {
+            "foo": {
+                "first": {
+                    "field_1": "first_one",
+                    "field_2": {
+                        "test_nested": "test_value",
+                    },
+                    "field_3": "first_three",
+                    "field_4": "first_four",
+                },
+            }
+        }
+        docs = fs.collection("foo").select(["field_2.test_nested"])
+        docs = [doc.to_dict() for doc in docs.stream()]
+        self.assertEqual(docs[0], {"field_2": {"test_nested": "test_value"}})
+
+    def test_document_select_fields_empty(self):
+        fs = MockFirestore()
+        fs._data = {
+            "foo": {
+                "first": {
+                    "field_1": "first_one",
+                    "field_2": {
+                        "test_nested": "test_value",
+                    },
+                    "field_3": "first_three",
+                    "field_4": "first_four",
+                },
+            }
+        }
+        docs = fs.collection("foo").select([])
+        docs = [doc.to_dict() for doc in docs.stream()]
+        self.assertEqual(docs[0], {})
+
+    def test_document_select_fields_and_where_statement(self):
+        fs = MockFirestore()
+        fs._data = {
+            "foo": {
+                "first": {
+                    "field_1": "first_one",
+                    "field_2": "first_two",
+                    "field_3": "first_three",
+                    "field_4": "first_four",
+                },
+                "second": {
+                    "field_1": "second_one",
+                    "field_2": "second_two",
+                    "field_3": "second_three",
+                    "field_4": "second_four",
+                },
+            }
+        }
+        docs = fs.collection("foo").select(["field_1", "field_2"]).where("field_1", "==", "first_one")
+        docs = [doc.to_dict() for doc in docs.stream()]
+        self.assertEqual(len(docs), 1)
+        self.assertEqual(docs[0], {"field_1": "first_one", "field_2": "first_two"})
+
+        docs = fs.collection("foo").select(["field_1", "field_2"]).where("field_3", "==", "first_three")
+        docs = [doc.to_dict() for doc in docs.stream()]
+        self.assertEqual(docs[0], {"field_1": "first_one", "field_2": "first_two"})

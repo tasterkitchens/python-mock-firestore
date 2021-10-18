@@ -83,3 +83,8 @@ class CollectionReference:
         for key in sorted(get_by_path(self._data, self._path)):
             doc_snapshot = self.document(key).get()
             yield doc_snapshot
+
+    def select(self, field_paths: Iterable[str]):
+        query = Query(self)
+        query.select(field_paths)
+        return query
