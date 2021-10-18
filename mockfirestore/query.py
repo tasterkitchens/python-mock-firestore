@@ -1,18 +1,21 @@
+from functools import reduce
 import warnings
 from itertools import islice, tee
-from typing import Iterator, Any, Optional, List, Callable, Union
+from typing import Iterable, Iterator, Any, Optional, List, Callable, Union
 
 from mockfirestore.document import DocumentSnapshot
-from mockfirestore._helpers import T
+from mockfirestore._helpers import T, split_field_path, get_by_path, set_by_path
 
 
 class Query:
     def __init__(self, parent: 'CollectionReference', projection=None,
-                 field_filters=(), orders=(), limit=None, offset=None,
+                 field_filters=(), selected=None, orders=(), limit=None, offset=None,
                  start_at=None, end_at=None, all_descendants=False) -> None:
         self.parent = parent
         self.projection = projection
         self._field_filters = []
+        self._selected_fields = selected
+
         self.orders = list(orders)
         self._limit = limit
         self._offset = offset
@@ -49,6 +52,18 @@ class Query:
 
         if self._limit:
             doc_snapshots = islice(doc_snapshots, self._limit)
+
+        if self._selected_fields is not None:
+            selected_fields = [split_field_path(field) for field in self._selected_fields]
+            docs = [doc for doc in doc_snapshots]
+            for snapshot in docs:
+                doc = {}
+                for field_path in selected_fields:
+                    value = get_by_path(snapshot._doc, field_path)
+                    if value:
+                        set_by_path(doc, field_path, value)
+                snapshot._doc = doc
+            doc_snapshots = docs
 
         return iter(doc_snapshots)
 
@@ -91,6 +106,10 @@ class Query:
 
     def end_before(self, document_fields_or_snapshot: Union[dict, DocumentSnapshot]) -> 'Query':
         self._end_at = (document_fields_or_snapshot, False)
+        return self
+
+    def select(self, field_paths: Iterable[str]) -> 'Query':
+        self._selected_fields = field_paths
         return self
 
     def _apply_cursor(self, document_fields_or_snapshot: Union[dict, DocumentSnapshot], doc_snapshot: Iterator[DocumentSnapshot],
