@@ -9,8 +9,9 @@ from mockfirestore.transaction import Transaction
 
 class MockFirestore:
 
-    def __init__(self) -> None:
+    def __init__(self, project: str=None) -> None:
         self._data = {}
+        self.project = project
 
     def _ensure_path(self, path):
         current_position = self
