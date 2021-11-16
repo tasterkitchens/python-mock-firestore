@@ -411,6 +411,10 @@ class TestDocumentReference(TestCase):
                     "field_3": "second_three",
                     "field_4": "second_four",
                 },
+                "third": {
+                    "field_1": "third_one",
+                    "field_2": None,
+                }
             }
         }
         docs = fs.collection("foo").select(["field_1", "field_2"]).where("field_1", "==", "first_one")
@@ -421,3 +425,7 @@ class TestDocumentReference(TestCase):
         docs = fs.collection("foo").select(["field_1", "field_2"]).where("field_3", "==", "first_three")
         docs = [doc.to_dict() for doc in docs.stream()]
         self.assertEqual(docs[0], {"field_1": "first_one", "field_2": "first_two"})
+
+        docs = fs.collection("foo").select(["field_1", "field_2", "unknown_key"])
+        docs = [doc.to_dict() for doc in docs.stream()]
+        self.assertEqual(docs[2], {"field_1": "third_one", "field_2": None})

@@ -59,9 +59,11 @@ class Query:
             for snapshot in docs:
                 doc = {}
                 for field_path in selected_fields:
-                    value = get_by_path(snapshot._doc, field_path)
-                    if value:
+                    try:
+                        value = get_by_path(snapshot._doc, field_path)
                         set_by_path(doc, field_path, value)
+                    except KeyError:
+                        pass
                 snapshot._doc = doc
             doc_snapshots = docs
 
